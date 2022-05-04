@@ -2,10 +2,8 @@
 
 namespace app\models;
 
-use app\models\Supplier;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use yii\data\Pagination;
 
 /**
  * SupplierSearch represents the model behind the search form of `app\models\Supplier`.
@@ -18,8 +16,7 @@ class SupplierSearch extends Supplier
     public function rules()
     {
         return [
-            [['id'], 'integer'],
-            [['name', 'code', 't_status'], 'safe'],
+            [['id', 'name', 'code', 't_status'], 'safe'],
         ];
     }
 
@@ -43,15 +40,10 @@ class SupplierSearch extends Supplier
     {
         $query = Supplier::find();
 
-        $pagination = new Pagination([
-            'defaultPageSize' => 5,
-            'totalCount'      => $query->count(),
-        ]);
-
         // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
-            'query' => $query,
+            'query'      => $query,
             'pagination' => ['pageSize' => 10,]
         ]);
 
@@ -63,11 +55,10 @@ class SupplierSearch extends Supplier
             return $dataProvider;
         }
 
-
         // grid filtering conditions
-        $query->andFilterWhere([
-            'id' => $this->id,
-        ]);
+        if (preg_match('/^([<=>]{0,2})(\d+)$/i', $this->id, $matches)) {
+            $query->andFilterWhere([$matches[1] ?: '=', 'id', $matches[2]]);
+        }
 
         if (in_array($this->t_status, Supplier::T_STATUS_LIST)) {
             $query->andFilterWhere([

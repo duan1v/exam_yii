@@ -11,6 +11,7 @@ use Yii;
  * @property string $name
  * @property string|null $code
  * @property string $t_status
+ *
  */
 class Supplier extends \yii\db\ActiveRecord
 {
@@ -57,10 +58,9 @@ class Supplier extends \yii\db\ActiveRecord
     }
 
     /**
-     *  下拉筛选
-     * @column string 字段
-     * @value mix 字段对应的值，不指定则返回字段数组
-     * @return mix|array 返回某个值或者数组
+     * @param string $column 字段
+     * @param string|mixed $value 字段对应的值，不指定则返回字段数组
+     * @return bool|mixed|array 返回某个值或者数组
      */
     public static function dropDown($column, $value = null)
     {
@@ -75,7 +75,7 @@ class Supplier extends \yii\db\ActiveRecord
             //根据具体值显示对应的值
             return array_key_exists($column, $dropDownList) ? $dropDownList[$column][$value] : false;
         } else {
-            //返回关联数组，用户下拉的filter实现
+//            返回关联数组，用户下拉的filter实现
             return array_key_exists($column, $dropDownList) ? $dropDownList[$column] : false;
         }
     }

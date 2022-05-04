@@ -8,7 +8,12 @@ use yii\db\Migration;
 class m220503_150953_create_supplier_table extends Migration
 {
     /**
+     *
      * {@inheritdoc}
+     * @return false|mixed|void
+     * @throws \yii\base\Exception
+     * @throws \yii\db\Exception
+     * @throws Exception
      */
     public function safeUp()
     {
@@ -23,14 +28,24 @@ class m220503_150953_create_supplier_table extends Migration
             'name'     => $this->string(50)->defaultValue('')->notNull(),
             'code'     => $this->char(3)->defaultValue(NULL),
             't_status' => $this->string(10)->defaultValue('ok')->notNull(),
-        ],$tableOptions);
-        $this->createIndex('uk_code','supplier','code',true);
-        $sql=<<<SQL
+        ], $tableOptions);
+        $this->createIndex('uk_code', '{{%supplier}}', 'code', true);
+        $sql = <<<SQL
 ALTER TABLE `supplier`
 MODIFY COLUMN `code`  char(3) CHARACTER SET ascii NULL DEFAULT NULL AFTER `name`,
 MODIFY COLUMN `t_status`  enum('ok','hold') CHARACTER SET ascii NOT NULL DEFAULT 'ok' AFTER `code`;
 SQL;
         $this->db->createCommand($sql)->queryAll();
+
+        $helper  = Yii::$app->getSecurity();
+        $tStatus = ['ok', 'hold'];
+        for ($i = 0; $i < 50; $i++) {
+            $this->insert('{{%supplier}}', [
+                'name'     => $helper->generateRandomString(random_int(1, 40)) . $i,
+                'code'     => str_pad($i, 3, 'a'),
+                't_status' => $tStatus[random_int(0, 1)],
+            ]);
+        }
     }
 
     /**
@@ -38,6 +53,10 @@ SQL;
      */
     public function safeDown()
     {
+        $this->dropIndex(
+            'uk_code',
+            '{{%supplier}}'
+        );
         $this->dropTable('{{%supplier}}');
     }
 }

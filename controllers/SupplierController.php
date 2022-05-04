@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\models\Supplier;
 use app\models\SupplierSearch;
+use yii\helpers\Json;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -22,7 +23,7 @@ class SupplierController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class'   => VerbFilter::className(),
                     'actions' => [
                         'delete' => ['POST'],
                     ],
@@ -38,11 +39,11 @@ class SupplierController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new SupplierSearch();
+        $searchModel  = new SupplierSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
+            'searchModel'  => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
@@ -130,5 +131,41 @@ class SupplierController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    public function actionExport()
+    {
+        $selectedId = $this->request->get('selected_ids');
+        preg_match('/[,\d]+/', $selectedId, $clearData);
+
+        if (!$clearData) {
+            die("<script>alert('请选择需要导出的数据！');window.history.go(-1);</script>");
+        }
+
+        header("Content-type:application/vnd.ms-excel; charset=utf-8");
+        header('Content-Disposition: attachment;filename=supplier_' . date('Y-m-d') . '.csv');
+
+        $delimiter = ',';
+
+        $ids    = explode(',', $clearData[0]);
+        $rows   = Supplier::find()
+            ->select(['id', 'name', 'code', 't_status'])
+            ->where(['in', 'id', $ids])
+            ->all();
+        $header = array('主键', 'NAME', 'CODE', 'T_STATUS');
+        $result = "";
+        if ($header && is_array($header)) {
+            foreach ($header as $h) {
+                $result .= mb_convert_encoding($h, "gb2312", "UTF-8") . $delimiter;
+            }
+            $result .= PHP_EOL;
+        }
+        foreach ($rows as $row) {
+            foreach ($row as $r) {
+                $result .= mb_convert_encoding($r, "gb2312", "UTF-8") . $delimiter;
+            }
+            $result .= PHP_EOL;
+        }
+        die($result);
     }
 }
