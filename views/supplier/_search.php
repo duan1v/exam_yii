@@ -57,6 +57,7 @@ use app\models\Supplier;
         if (msg && allLength === selectedLength) {
             return confirm(msg);
         }
+        return true;
     }
 
     function ep() {
